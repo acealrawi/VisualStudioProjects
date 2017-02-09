@@ -33,6 +33,7 @@ namespace ChatServer1
                     
                     data = Encoding.Unicode.GetString(dataBytes, 0, i);
                     
+                    
                 }
 
                 foreach(TcpClient c in clients) {
