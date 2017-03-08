@@ -1,0 +1,14 @@
+﻿<Page
+    x:Class="ChatServerUWP.MainPage"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:local="using:ChatServerUWP"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    mc:Ignorable="d">
+
+    <Grid Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
+        <Button x:Name="button" Content="Connect" HorizontalAlignment="Left" Margin="92,41,0,0" VerticalAlignment="Top" Height="60" Width="154"/>
+        <ToggleSwitch x:Name="toggleSwitch" Header="" HorizontalAlignment="Left" Margin="92,188,0,0" VerticalAlignment="Top" OffContent="UDP" OnContent="TCP"/>
+    </Grid>
+</Page>
