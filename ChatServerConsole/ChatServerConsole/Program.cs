@@ -9,13 +9,13 @@ using System.Net.Sockets;
 using System.Net;
 
 namespace ChatServerConsole {
-    class Program {
+    class Server {
 
         static TcpListener server = null;
 
         static IPAddress ip = IPAddress.Parse("127.0.0.1");
         static int port = 13000;
-        List<TcpClient> clients = new List<TcpClient>();
+        
         Byte[] bytes = new Byte[256];
         String data = null;
 
@@ -25,7 +25,7 @@ namespace ChatServerConsole {
             try {
                 server = new TcpListener(ip, port);
                 server.Start();
-                Console.Write("1");
+
 
                 await acceptClient(server, cts.Token);
             }
@@ -44,7 +44,7 @@ namespace ChatServerConsole {
             
             while (!ct.IsCancellationRequested) {
                 TcpClient client = await server.AcceptTcpClientAsync();
-                clients.Add(client);
+                
                 
                 await messages(client, ct);
                 
@@ -59,14 +59,6 @@ namespace ChatServerConsole {
             byte[] inBuffer = new byte[256];
 
             List<byte> buffer = new List<byte>();
-           
-           
-            /* while ((i=stream.Read(inBuffer, 0, inBuffer.Length)) != 0) {
-
-                 buffer.AddRange(inBuffer);
-                 Console.Write("6");
-
-             }*/
             do {
 
                 stream.Read(inBuffer, 0, inBuffer.Length);
@@ -84,40 +76,37 @@ namespace ChatServerConsole {
            ChatServerMessage csm = new ChatServerMessage(message);
            stream.Write(csm.Serialize(), 0, csm.Serialize().Length);
 
-           /* foreach (TcpClient c in clients) {
-               stream = c.GetStream();
-               stream.Write(ccm.Serialize(), 0, ccm.Serialize().Length);
-                
-           }*/
-
         }
 
         public void udpServer() {
-            
+            UdpClient udpClient = null;
+            try
+            {
+                udpClient = new UdpClient(13000);
+                IPEndPoint ip = new IPEndPoint(IPAddress.Any, 13000);
 
-            UdpClient listener = new UdpClient(port);
-            IPEndPoint groupEP = new IPEndPoint(IPAddress.Any, port);
 
-            try {
-                while (true) {
-                    Console.WriteLine("Waiting for broadcast");
-                    byte[] bytes = listener.Receive(ref groupEP);
-
-                    ChatClientMessage ccm = ChatClientMessage.Deserialize(bytes);
-
-                    string message = ccm.UserName + " says: " + ccm.Message;
-                    ChatServerMessage csm = new ChatServerMessage(message);
-
-                    listener.Send(csm.Serialize(), csm.Serialize().Length);
+                while (true)
+                {
+                    Byte[] receiveBytes = udpClient.Receive(ref ip);
+                    ChatClientMessage ccm = ChatClientMessage.Deserialize(receiveBytes);
+                    Console.WriteLine("This is the message you received:   " + ccm.Message + "   from user: " + ccm.UserName);
+                    ChatServerMessage csm = new ChatServerMessage(ccm.Message.ToUpper());
+                    Console.WriteLine("This message was sent from " + ip.Address.ToString() + " on their port number " + ip.Port.ToString());
+                    udpClient.Connect(ip);
+                    udpClient.Send(csm.Serialize(), csm.Serialize().Length);
                 }
 
             }
-            catch (Exception e) {
+            catch (Exception e)
+            {
                 Console.WriteLine(e.ToString());
             }
-            finally {
-                listener.Close();
+            finally{
+                udpClient.Close();
             }
+
+
         }
 
 
@@ -127,32 +116,15 @@ namespace ChatServerConsole {
 
 
         static void Main(string[] args) {
-            Program x = new Program();
-            Task.WaitAll(x.tcpServer());
-           // x.udpServer();
-            
-            
-            
-
-            
-
-
-
-
-
-            //IPAddress ip = IPAddress.Parse("233");
-            // TcpListener server = new TcpListener(ip,3333);
-
-            // server.Start();
-
-            // TcpClient client = server.AcceptTcpClient();
-            //
-            //  NetworkStream stream = client.GetStream();
-
-            // stream.Read()
-
-
-
+            Server server = new Server();
+            bool tcp = true;
+            if (tcp){
+                Task.WaitAll(server.tcpServer());
+            }
+            else
+            {
+                server.udpServer();
+            }
         }
     }
 }
